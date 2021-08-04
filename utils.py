@@ -92,7 +92,7 @@ def fetch_circulars():
     SERVER = 'mailstore.iitd.ac.in'
     mail = imaplib.IMAP4_SSL(SERVER)
     mail.login(IITD_EMAIL, IITD_PASS)
-    mail.select('inbox')
+    mail.select('inbox', readonly=True)
     status, data = mail.search(None, 'ALL')
     mail_ids = []
     for block in data:
@@ -106,6 +106,7 @@ def fetch_circulars():
                 if 'allstudents@circular.iitd.ac.in' not in message['X-Original-To']:
                     continue
                 mail_subject = message['subject']
+                print("SUBJECT: " + mail_subject)
                 if message.is_multipart():
                     mail_content = ''
                     for part in message.get_payload():

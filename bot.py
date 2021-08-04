@@ -4,13 +4,16 @@ import json
 import os
 from dotenv import load_dotenv
 import asyncio
+import datetime
 
 
-client = discord.Client()
+intents = discord.Intents.default()
+intents.members = True
+client = discord.Client(intents=intents)
 
 
 async def checkmail(channel, old_mails={}):
-    print("Checking for mails")
+    print("Checking for mails "+str(datetime.datetime.now()))
     new_mails = utils.fetch_circulars()
     for m in new_mails:
         if m not in old_mails:
@@ -29,7 +32,7 @@ async def set(message, id, kerberos):
             if user.name != discord_ids[id]['username'] or kerberos != discord_ids[id]['kerberos']:
                 await message.reply("**INFO:** Kerberos for "+discord_ids[id]['username']+" was previously set to `"+discord_ids[id]['kerberos']+"`")
             else:
-                await message.reply("Updating details...")
+                await message.reply("Updating details for "+user.name)
         discord_ids.update({id : {'username':str(user.name), 'kerberos':str(kerberos)}})
         with open("discord_ids.json", "w") as outfile:
             json.dump(discord_ids, outfile)
@@ -70,6 +73,66 @@ async def set(message, id, kerberos):
     else:
         await message.reply("Could not find `"+kerberos+"` in kerberos database.")
 
+
+async def update(message):
+    discord_ids = json.load(open("discord_ids.json"))
+    logs = []
+    kerb_id = {}
+    async for user in message.guild.fetch_members(limit=None):
+        id = str(user.id)
+        if id not in discord_ids:
+            logs.append("ERROR: Did not find "+user.name+" in discord_ids"+'\n')
+            continue
+        kerberos = str(discord_ids[id]['kerberos'])
+        if kerberos in kerb_id:
+            logs.append("WARNING: DUPLICATE key `"+kerberos+"` for `"+user.name+"` and `"+discord_ids[kerb_id[kerberos]]['kerberos']+"`\n")
+        else:
+            kerb_id[kerberos] = id
+        if kerberos in utils.kerberos_lookup:
+            name = str(utils.kerberos_lookup[kerberos]["name"])
+            if name != user.nick and name != user.name:
+                logs.append("WARNING: NICK for `"+user.name+"` expected: `"+name+"`, found: `"+str(user.nick)+"`\n")
+
+            hostel = str(utils.kerberos_lookup[kerberos]["hostel"])
+            for h in utils.hostels:
+                if h != hostel and discord.utils.get(message.guild.roles, name = h) in user.roles:
+                    await user.remove_roles(discord.utils.get(message.guild.roles, name = h))
+                    logs.append("ACTION: Removed role `"+h+"` for `"+user.name+"`\n")
+            if discord.utils.get(message.guild.roles, name = hostel) not in user.roles:
+                try:
+                    await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
+                    logs.append("ACTION: Added role `"+hostel+"` for `"+user.name+"`\n")
+                except:
+                    logs.append("WARNING: ROLE not found `"+hostel+"`"+'\n')
+
+            branch = kerberos[:3].upper()
+            for b in utils.branches:
+                if b.upper() != branch and discord.utils.get(message.guild.roles, name = b.upper()) in user.roles:
+                    await user.remove_roles(discord.utils.get(message.guild.roles, name = b.upper()))
+                    logs.append("ACTION: Removed role `"+b.upper()+"` for `"+user.name+"`\n")
+            if discord.utils.get(message.guild.roles, name = branch) not in user.roles:
+                try:
+                    await user.add_roles(discord.utils.get(message.guild.roles, name = branch))
+                    logs.append("ACTION: Added role `"+branch+"` for `"+user.name+"`\n")
+                except:
+                    logs.append("WARNING: ROLE not found `"+branch+"`"+'\n')
+
+            course = utils.get_student_courses(kerberos)
+            for c in utils.courses:
+                if c not in course and discord.utils.get(message.guild.roles, name = c) in user.roles:
+                    await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
+                    logs.append("ACTION: Removed role `"+c+"` for `"+user.name+"`\n")
+            for c in course:
+                if discord.utils.get(message.guild.roles, name = c) not in user.roles:
+                    try:
+                        await user.add_roles(discord.utils.get(message.guild.roles, name = c))
+                        logs.append("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
+                    except:
+                        logs.append("WARNING: ROLE not found `"+c+"`"+'\n')
+        else:
+            logs.append("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
+    return logs
+
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
@@ -81,6 +144,7 @@ async def on_message(message):
 
     if message.content.lower().startswith("hello"):
         await message.reply("hello")
+
     if message.content.lower().startswith("?help"):
         await message.reply(
 """
@@ -89,10 +153,16 @@ async def on_message(message):
 - `?help` to display this message
 - `?set <kerberos>` to set your kerberos and automatically assign role for branch, hostel and courses
 - `?courses <kerberos>` to list courses by kerberos id
+
 _Manager only_ -
-- `?checkmail` to track circular emails on that channel every minute
+- `?edit <kerberos> @User` to edit kerberos for some user
+- `?checkmail #Channel` to track circular emails on that channel every minute
 - `?update` to update roles for all registered users
 - `?reload` to reload the database from `.csv` and `.json` files
+- `?fetchldap` to fetch courses data from ldap and reload
+
+Curious how this works? Check out the source code at https://github.com/as1605/IITD-Bot 
+and leave a :star: if you like it
 """)
     if message.content.lower().startswith("?courses"):
         command = message.content.lower().split(' ')
@@ -101,7 +171,7 @@ _Manager only_ -
             courses = ' '
             for c in utils.get_student_courses(kerberos):
                 courses += c + ' '
-            await message.reply("You are enrolled in `"+courses+"`")
+            await message.reply("`"+courses+"`")
         else:
             await message.reply("Command is `?courses <kerberos>`. Try `?courses ee1200461`")
 
@@ -113,11 +183,22 @@ _Manager only_ -
         else:
             await message.reply("Command is `?set <kerberos>`")
 
+    if message.content.lower().startswith("?edit"):
+        if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
+            try:
+                id = message.raw_mentions[0]
+                kerberos = message.content.lower().split(' ')[1]
+                await set(message, id, kerberos)
+            except:
+                await message.reply("Command is ?edit <kerberos> @User")
+        else:
+            await message.reply("Only server managers can use this command")
+
     if message.content.lower().startswith("?update"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
-            discord_ids = json.load(open("discord_ids.json"))
-            for id in discord_ids:
-                await set(message, id, discord_ids[id]['kerberos'])
+            with open('log.txt', 'w') as f:
+                f.writelines(await update(message))
+                await message.reply(file= discord.File('log.txt'))
         else:
             await message.reply("Only server managers can use this command")
 
@@ -128,10 +209,23 @@ _Manager only_ -
         else:
             await message.reply("Only server managers can use this command")
 
+    if message.content.lower().startswith("?fetchldap"):
+        if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
+            try:
+                utils.get_course_lists()
+                utils.reload()
+                await message.reply("Fetched LDAP")
+            except:
+                await message.reply("Host not connected to IITD Internal Network")
+        else:
+            await message.reply("Only server managers can use this command")
+
     if message.content.lower().startswith("?checkmail"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
-            await message.channel.send("Tracking mail on <#"+str(message.channel.id)+">")
-            await checkmail(message.channel)
+            for c in message.raw_channel_mentions:
+                channel = message.guild.get_channel(c)
+                await message.reply("Tracking mail on <#"+str(channel.id)+">")
+                await checkmail(channel)
         else:
             await message.reply("Only server managers can use this command")
 

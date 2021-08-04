@@ -3,6 +3,7 @@
 # Not uploading data files for privacy
 *.json
 *.csv
+*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
