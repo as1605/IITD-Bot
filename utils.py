@@ -10,15 +10,21 @@ from dotenv import load_dotenv
 
 course_lists = {}
 kerberos_lookup = {}
+course_slots = {}
 hostels = []
 branches = []
 courses = []
+years = ["2017", "2018", "2019", "2020", "2021", "2022"]
 
 
 def reload():
     global course_lists
     course_lists = {}
     course_lists = json.load(open("course_lists.json"))
+
+    global course_slots
+    course_slots = {}
+    course_slots = json.load(open("course_slots.json"))
 
     global kerberos_lookup
     kerberos_lookup = {}
@@ -77,6 +83,19 @@ def get_course_lists():
         json.dump(courseLists, outfile)
 
 
+def get_course_slots():
+    course_slots = {}
+    with open('Courses_Offered.csv', newline='') as csvfile:
+        sheet = csv.reader(csvfile, delimiter=',')
+        for s in sheet:
+            course = s[1].split('-')[-1]
+            if course in course_lists:
+                slot = s[3]
+                course_slots[course] = slot
+    with open("course_slots.json", "w") as outfile:
+        json.dump(course_slots, outfile)
+
+
 def get_student_courses(kerberos):
     courses = []
     for c in course_lists:
@@ -104,7 +123,10 @@ def fetch_circulars():
             if isinstance(response_part, tuple):
                 message = email.message_from_bytes(response_part[1])
                 if 'allstudents@circular.iitd.ac.in' not in message['X-Original-To']:
-                    continue
+                    if 'allbtech@circular.iitd.ac.in' not in message['X-Original-To']:
+                        if 'alldual@circular.iitd.ac.in' not in message['X-Original-To']:
+                            if 'allintegrated@circular.iitd.ac.in' not in message['X-Original-To']:
+                                continue
                 mail_subject = message['subject']
                 print("SUBJECT: " + mail_subject)
                 if message.is_multipart():
