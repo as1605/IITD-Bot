@@ -61,7 +61,7 @@ def get_course_lists():
     if response.status_code != 200:
         print("Failed to fetch "+url+" Status "+response.status_code)
         return
-    soup = BeautifulSoup(response.text,'lxml')
+    soup = BeautifulSoup(response.text,'html.parser')
     courses = soup.find_all('a')
     courseLists = {}
     for course in courses:
@@ -73,7 +73,7 @@ def get_course_lists():
         if response.status_code != 200:
             print("Failed to fetch " + url + " Status " + response.status_code)
             continue
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(response.text, 'html.parser')
         students = soup.find_all('td', attrs = {'align' : 'LEFT'})
         sList = []
         for s in students:
@@ -88,7 +88,7 @@ def get_course_slots():
     with open('Courses_Offered.csv', newline='') as csvfile:
         sheet = csv.reader(csvfile, delimiter=',')
         for s in sheet:
-            course = s[1].split('-')[-1]
+            course = s[1].split('-')[-1][:6]
             if course in course_lists:
                 slot = s[3]
                 course_slots[course] = slot
@@ -133,9 +133,98 @@ def fetch_circulars():
                     mail_content = ''
                     for part in message.get_payload():
                         if part.get_content_type() == 'text/plain':
-                            mail_content += part.get_payload()
+                            mail_content += part.get_payload(decode=True).decode('utf-8')
                 else:
                     mail_content = message.get_payload()
                 new_mails[mail_subject] = mail_content
     return new_mails
 
+#PROGRAM TO CREATE COURSES TIMETABLE 
+
+days = {
+    0 : {
+        "A" : "8-9:30 AM",
+        "B" : "9:30-11 AM",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "11-12 AM",
+        "J" : "12-1 PM",
+        "K" : "",
+        "L" : "",
+        "M" : "5-6:30 PM"
+    },
+        1 : {
+        "A" : "",
+        "B" : "",
+        "C" : "8-9AM",
+        "D" : "9-10AM",
+        "E" : "10-11AM",
+        "F" : "11-12PM",
+        "H" : "",
+        "J" : "12-1 PM",
+        "K" : "5-6PM",
+        "L" : "6-7PM",
+        "M" : ""
+    },
+        2 : {
+        "A" : "",
+        "B" : "",
+        "C" : "8-9AM",
+        "D" : "9-10AM",
+        "E" : "10-11AM",
+        "F" : "",
+        "H" : "11-12PM",
+        "J" : "",
+        "K" : "12-1 PM",
+        "L" : "",
+        "M" : ""
+    }, 
+        3 : {
+        "A" : "8-9:30 AM",
+        "B" : "9:30-11 AM",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "11-12 AM",
+        "H" : "12-1 PM",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "5-6:30 PM"
+    },
+        4 : {
+        "A" : "",
+        "B" : "",
+        "C" : "8-9AM",
+        "D" : "9-10AM",
+        "E" : "10-11AM",
+        "F" : "11-12PM",
+        "H" : "",
+        "J" : "12-1 PM",
+        "K" : "5-6PM",
+        "L" : "6-7PM",
+        "M" : ""
+    }
+}
+
+def createTimeTable(kerberos): 
+    timetable = [[] for i in range(5)]
+    for course in get_student_courses(kerberos):
+        try : 
+            slot = course_slots[course]
+            for i in range(5): 
+                if days[i][slot] != "":
+                    timetable[i].append((slot,course,days[i][slot]))
+                timetable[i].sort()
+        except:
+            print(course+" Not found")
+    week = ["Monday","Tuesday","Wednesday","Thursday","Friday"]
+    tt = ""
+    for i in range(5):
+        tt+=week[i]+'\n'
+        for tup in timetable[i]:
+            tt+=tup[2] + ": " + tup[1] + '\n'
+        tt+='\n'
+    return tt

@@ -8,6 +8,7 @@ Discord bot to administer IITD'20 Acad Server
 * `?set <kerberos>` to set your kerberos and automatically assign role for branch, hostel and courses
 * `?courses <kerberos>` to list courses by kerberos id
 * `?slot <course>` to get slot for a course
+* `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable
 ### Manager only
 * `?edit <kerberos> @User` to edit kerberos for some user
 * `?checkmail #Channel` to track circular emails on that channel every minute

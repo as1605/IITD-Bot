@@ -17,7 +17,7 @@ async def checkmail(channel, old_mails={}):
     new_mails = utils.fetch_circulars()
     for m in new_mails:
         if m not in old_mails:
-            await channel.send("**"+str(m)+"**"+'\n'+str(new_mails[m])[:1900])
+            await channel.send("**"+str(m)[:400]+"**"+'\n'+str(new_mails[m])[:1500])
     await asyncio.sleep(60)
     await checkmail(channel, new_mails)
 
@@ -176,6 +176,7 @@ async def on_message(message):
 - `?set <kerberos>` to set your kerberos and automatically assign role for branch, hostel and courses
 - `?courses <kerberos>` to list courses by kerberos id
 - `?slot <course>` to get slot for a course
+- `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
 
 _Manager only_ -
 - `?edit <kerberos> @User` to edit kerberos for some user
@@ -214,6 +215,22 @@ and leave a :star: if you like it
             await message.reply("`"+utils.course_slots[course]+"`")
         except:
             await message.reply("Command is `?slot <course>`")
+
+    if message.content.lower().startswith("?tt"):
+        command = message.content.lower().split(' ')
+        try:
+            if len(message.raw_mentions)>0:
+                for id in message.raw_mentions:
+                    user = json.load(open("discord_ids.json"))[str(id)]
+                    await message.reply(user["username"]+"```\n"+utils.createTimeTable(user["kerberos"])+"\n```")
+            elif len(command)>1:
+                kerberos = command[1]
+                await message.reply("```\n"+utils.createTimeTable(kerberos)+"\n```") 
+            else:
+                kerberos = json.load(open("discord_ids.json"))[str(message.author.id)]["kerberos"]
+                await message.reply("```\n"+utils.createTimeTable(kerberos)+"\n```") 
+        except:
+            await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
     if message.content.lower().startswith("?edit"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
