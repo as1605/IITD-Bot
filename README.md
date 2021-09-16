@@ -9,6 +9,7 @@ Discord bot to administer IITD'20 Acad Server
 * `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 * `?slot <course>` to get slot for a course
 * `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
+* `?datesheet` to get datesheet for upcoming exams
 * Works for multiple inputs too! Try `?slot COL106 COL202`
 
 ### Manager only
