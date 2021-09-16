@@ -144,13 +144,13 @@ def fetch_circulars():
 days = {
     0 : {
         "A" : "8-9:30 AM",
-        "B" : "9:30-11 AM",
+        "B" : "9:30-11AM",
         "C" : "",
         "D" : "",
         "E" : "",
         "F" : "",
-        "H" : "11-12 AM",
-        "J" : "12-1 PM",
+        "H" : "11-12 AM ",
+        "J" : "12-1 PM  ",
         "K" : "",
         "L" : "",
         "M" : "5-6:30 PM"
@@ -158,37 +158,37 @@ days = {
         1 : {
         "A" : "",
         "B" : "",
-        "C" : "8-9AM",
-        "D" : "9-10AM",
-        "E" : "10-11AM",
-        "F" : "11-12PM",
+        "C" : "8-9 AM   ",
+        "D" : "9-10 AM  ",
+        "E" : "10-11 AM ",
+        "F" : "11-12 PM ",
         "H" : "",
-        "J" : "12-1 PM",
-        "K" : "5-6PM",
-        "L" : "6-7PM",
+        "J" : "12-1 PM  ",
+        "K" : "5-6 PM   ",
+        "L" : "6-7 PM   ",
         "M" : ""
     },
         2 : {
         "A" : "",
         "B" : "",
-        "C" : "8-9AM",
-        "D" : "9-10AM",
-        "E" : "10-11AM",
+        "C" : "8-9 AM   ",
+        "D" : "9-10 AM  ",
+        "E" : "10-11 AM ",
         "F" : "",
-        "H" : "11-12PM",
+        "H" : "11-12 PM ",
         "J" : "",
-        "K" : "12-1 PM",
+        "K" : "12-1 PM  ",
         "L" : "",
         "M" : ""
     }, 
         3 : {
         "A" : "8-9:30 AM",
-        "B" : "9:30-11 AM",
+        "B" : "9:30-11AM",
         "C" : "",
         "D" : "",
         "E" : "",
-        "F" : "11-12 AM",
-        "H" : "12-1 PM",
+        "F" : "11-12 AM ",
+        "H" : "12-1 PM  ",
         "J" : "",
         "K" : "",
         "L" : "",
@@ -197,14 +197,14 @@ days = {
         4 : {
         "A" : "",
         "B" : "",
-        "C" : "8-9AM",
-        "D" : "9-10AM",
-        "E" : "10-11AM",
-        "F" : "11-12PM",
+        "C" : "8-9 AM   ",
+        "D" : "9-10 AM  ",
+        "E" : "10-11 AM ",
+        "F" : "11-12 PM ",
         "H" : "",
-        "J" : "12-1 PM",
-        "K" : "5-6PM",
-        "L" : "6-7PM",
+        "J" : "12-1 PM  ",
+        "K" : "5-6 PM   ",
+        "L" : "6-7 PM   ",
         "M" : ""
     }
 }
@@ -213,7 +213,7 @@ def createTimeTable(kerberos):
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
         try : 
-            slot = course_slots[course]
+            slot = course_slots[course[:6]]
             for i in range(5): 
                 if days[i][slot] != "":
                     timetable[i].append((slot,course,days[i][slot]))
@@ -225,6 +225,6 @@ def createTimeTable(kerberos):
     for i in range(5):
         tt+=week[i]+'\n'
         for tup in timetable[i]:
-            tt+=tup[2] + ": " + tup[1] + '\n'
+            tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
         tt+='\n'
     return tt

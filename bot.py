@@ -174,9 +174,10 @@ async def on_message(message):
 - `hello` to check if bot is online
 - `?help` to display this message
 - `?set <kerberos>` to set your kerberos and automatically assign role for branch, hostel and courses
-- `?courses <kerberos>` to list courses by kerberos id
+- `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
+- Works for multiple inputs too! Try `?slot COL106 COL202`
 
 _Manager only_ -
 - `?edit <kerberos> @User` to edit kerberos for some user
@@ -190,7 +191,7 @@ and leave a :star: if you like it
 """)
 
     if message.content.lower().startswith("?set"):
-        command = message.content.lower().split(' ')
+        command = message.content.lower().split()
         try:
             kerberos = command[1]
             await set(message, message.author.id, kerberos)
@@ -198,37 +199,48 @@ and leave a :star: if you like it
             await message.reply("Command is `?set <kerberos>`")
 
     if message.content.lower().startswith("?courses"):
-        command = message.content.lower().split(' ')
+        command = message.content.lower().split()
         try:
-            kerberos = command[1]
-            courses = ' '
-            for c in utils.get_student_courses(kerberos):
-                courses += c + ' '
-            await message.reply("`"+courses+"`")
+            kerberos = []
+            users = json.load(open("discord_ids.json"))
+            for id in message.raw_mentions:
+                kerberos.append(users[str(id)]["kerberos"])
+            for k in command:
+                if k[0].isalnum():
+                    kerberos.append(k)
+            if len(kerberos) == 0:
+                kerberos.append(users[str(message.author.id)]["kerberos"])
+            for k in kerberos:
+                courses = ' '
+                for c in utils.get_student_courses(k):
+                    courses += c + ' '
+                await message.reply(k+" `"+courses+"`")
         except:
-            await message.reply("Command is `?courses <kerberos>`. Try `?courses ee1200461`")
+            await message.reply("Command is `?courses` (self) or `?courses <kerberos>` or `?courses @User`")
 
     if message.content.lower().startswith("?slot"):
-        command = message.content.upper().split(' ')
+        command = message.content.upper().split()
         try:
-            course = command[1]
-            await message.reply("`"+utils.course_slots[course]+"`")
+            for course in command:
+                if course.isalnum():
+                    await message.reply(course+" `"+utils.course_slots[course]+"`")
         except:
             await message.reply("Command is `?slot <course>`")
 
     if message.content.lower().startswith("?tt"):
-        command = message.content.lower().split(' ')
+        command = message.content.lower().split()
         try:
-            if len(message.raw_mentions)>0:
-                for id in message.raw_mentions:
-                    user = json.load(open("discord_ids.json"))[str(id)]
-                    await message.reply(user["username"]+"```\n"+utils.createTimeTable(user["kerberos"])+"\n```")
-            elif len(command)>1:
-                kerberos = command[1]
-                await message.reply("```\n"+utils.createTimeTable(kerberos)+"\n```") 
-            else:
-                kerberos = json.load(open("discord_ids.json"))[str(message.author.id)]["kerberos"]
-                await message.reply("```\n"+utils.createTimeTable(kerberos)+"\n```") 
+            kerberos = []
+            users = json.load(open("discord_ids.json"))
+            for id in message.raw_mentions:
+                kerberos.append(users[str(id)]["kerberos"])
+            for k in command:
+                if k[0].isalnum():
+                    kerberos.append(k)
+            if len(kerberos) == 0:
+                kerberos.append(users[str(message.author.id)]["kerberos"])
+            for k in kerberos:
+                await message.reply(k+"\n```\n"+utils.createTimeTable(k)+"\n```") 
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
@@ -236,7 +248,7 @@ and leave a :star: if you like it
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
             try:
                 id = message.raw_mentions[0]
-                kerberos = message.content.lower().split(' ')[1]
+                kerberos = message.content.lower().split()[1]
                 await set(message, id, kerberos)
             except:
                 await message.reply("Command is ?edit <kerberos> @User")
