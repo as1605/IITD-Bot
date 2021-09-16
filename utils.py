@@ -209,6 +209,14 @@ days = {
     }
 }
 
+datesheet_exam_name = "Minors Sem I 2021-22"
+datesheet_slots = ["F", "B", "C", "D", "E",
+                   "AC", "AA", "AB", "AD", "X", 
+                   "H", "M", "J", "L", "A",
+                   "K",]
+datesheet_days = ["Sun, 19 Sept", "Mon, 20 Sept", "Tue, 21 Sept", "Wed, 22 Sept", "Thu, 23 Sept",]
+datesheet_endtimes = ["11:00", "13:30", "16:00", "18:30"]
+
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
@@ -228,3 +236,16 @@ def createTimeTable(kerberos):
             tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
         tt+='\n'
     return tt
+
+    def createDateSheet(kerberos): 
+        datesheet = "Date Sheet for " + datesheet_exam_name + "\n"
+        for course in get_student_courses(kerberos):
+            try : 
+                slot = course_slots[course[:6]]
+                index = datesheet_slots.index(slot)
+                day = datesheet_days[index%len(datesheet_days)]
+                end_time = datesheet_endtimes[index/len(datesheet_days)]
+                datesheet+= course+": "+day+" End Time: "+end_time+" \n"
+            except:
+                print(course+" Not found")
+        return datesheet
