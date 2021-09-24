@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 course_lists = {}
 kerberos_lookup = {}
 course_slots = {}
+mess = {}
 hostels = []
 branches = []
 courses = []
@@ -18,6 +19,10 @@ years = ["2017", "2018", "2019", "2020", "2021", "2022"]
 
 
 def reload():
+    global mess
+    mess = {}
+    mess = json.load(open("mess.json"))
+
     global course_lists
     course_lists = {}
     course_lists = json.load(open("course_lists.json"))

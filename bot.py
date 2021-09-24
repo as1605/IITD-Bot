@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import asyncio
 import datetime
+import calendar
 
 
 intents = discord.Intents.default()
@@ -177,6 +178,7 @@ async def on_message(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
+- `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
 _Manager only_ -
@@ -243,6 +245,34 @@ and leave a :star: if you like it
                 await message.reply(k+"\n```\n"+utils.createTimeTable(k)+"\n```") 
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
+    
+    if message.content.lower().startswith("?mess"):
+        command = message.content.title().split()
+        try:
+            hostel = []
+            days = []
+            
+            for c in command:
+                if c in utils.hostels:
+                    hostel.append(c)
+            if len(hostel) == 0:
+                kerberos = json.load(open("discord_ids.json"))[str(message.author.id)]["kerberos"]
+                hostel.append(utils.kerberos_lookup[kerberos]["hostel"])
+            
+            for c in command:
+                if c[0] == '-':
+                    if c.startswith("-All"):
+                        days = list(range(7))
+                        break
+                    days.append(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].index(c[1:4]))
+            if len(days) == 0:
+                days.append(datetime.datetime.now().weekday())
+            
+            for h in hostel:
+                for d in days:
+                    await message.reply("`"+h+"` `"+calendar.day_name[d]+"` \n```\n"+'\n'.join(utils.mess[h][d])+" \n```")
+        except:
+            await message.reply("Command is `?mess` (self) or `?mess <hostel> -<day>`")
 
     if message.content.lower().startswith("?edit"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
