@@ -214,6 +214,141 @@ days = {
     }
 }
 
+
+
+major_days = {
+    15 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "End time 12:00/16:00",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    16 : {
+        "A" : "",
+        "B" : "End time 12:00/16:00",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    17 : {
+        "A" : "End time 12:00",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    18 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "End time 12:00/16:00",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },    
+    19 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },  
+    20 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "End time 16:00/20:00",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    21 : {
+        "A" : "",
+        "B" : "",
+        "C" : "End time 12:00",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    22 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "End time 12:00",
+        "J" : "",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+    23 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "",
+        "K" : "End time 16:00",
+        "L" : "",
+        "M" : "End time 12:00",
+    },
+    24 : {
+        "A" : "",
+        "B" : "",
+        "C" : "",
+        "D" : "",
+        "E" : "",
+        "F" : "",
+        "H" : "",
+        "J" : "End time 12:00",
+        "K" : "",
+        "L" : "",
+        "M" : "",
+    },
+}
+
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
@@ -226,6 +361,26 @@ def createTimeTable(kerberos):
         except:
             print(course+" Not found")
     week = ["Monday","Tuesday","Wednesday","Thursday","Friday"]
+    tt = ""
+    for i in range(5):
+        tt+=week[i]+'\n'
+        for tup in timetable[i]:
+            tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
+        tt+='\n'
+    return tt
+
+def getMajor(kerberos):
+    timetable = [[] for i in range(5)]
+    for course in get_student_courses(kerberos):
+        try : 
+            slot = course_slots[course[:6]]
+            for i in range(15,25): 
+                if days[i][slot] != "":
+                    timetable[i].append((slot,course,days[i][slot]))
+                timetable[i].sort()
+        except:
+            print(course+" Not found")
+    week = ["15 Nov","16 Nov","17 Nov","18 Nov","19 Nov","20 Nov","21 Nov","22 Nov","23 Nov","24 Nov"]
     tt = ""
     for i in range(5):
         tt+=week[i]+'\n'

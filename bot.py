@@ -178,6 +178,7 @@ async def on_message(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
+- `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's timetable (excluding labs for now)
 - `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
@@ -245,6 +246,24 @@ and leave a :star: if you like it
                 await message.reply(k+"\n```\n"+utils.createTimeTable(k)+"\n```") 
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
+    
+    if message.content.lower().startswith("?major"):
+        command = message.content.lower().split()
+        try:
+            kerberos = []
+            users = json.load(open("discord_ids.json"))
+            for id in message.raw_mentions:
+                kerberos.append(users[str(id)]["kerberos"])
+            for k in command:
+                if k[0].isalnum():
+                    kerberos.append(k)
+            if len(kerberos) == 0:
+                kerberos.append(users[str(message.author.id)]["kerberos"])
+            for k in kerberos:
+                await message.reply(k+"\n```\n"+utils.getMajor(k)+"\n```") 
+        except:
+            await message.reply("Command is `?major` (self) or `?major <kerberos>` or `?major @User`")
+    
     
     if message.content.lower().startswith("?mess"):
         command = message.content.title().split()
