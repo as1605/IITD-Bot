@@ -370,21 +370,23 @@ def createTimeTable(kerberos):
     return tt
 
 def getMajor(kerberos):
-    timetable = [[] for i in range(5)]
+    timetable = [[] for i in range(10)]
     for course in get_student_courses(kerberos):
         try : 
             slot = course_slots[course[:6]]
-            for i in range(15,25): 
-                if days[i][slot] != "":
-                    timetable[i].append((slot,course,days[i][slot]))
+            for i in range(10): 
+                if major_days[i+15][slot] != "":
+                    timetable[i].append((slot,course,major_days[i+15][slot]))
                 timetable[i].sort()
         except:
             print(course+" Not found")
     week = ["15 Nov","16 Nov","17 Nov","18 Nov","19 Nov","20 Nov","21 Nov","22 Nov","23 Nov","24 Nov"]
     tt = ""
-    for i in range(5):
-        tt+=week[i]+'\n'
+    for i in range(10):
+        if len(timetable[i]) == 0:
+            continue
+        tt+=week[i] + '\t'
         for tup in timetable[i]:
-            tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
+            tt+=tup[1] +'\t'
         tt+='\n'
-    return tt
+    return tt 

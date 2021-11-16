@@ -178,7 +178,7 @@ async def on_message(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
-- `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's timetable (excluding labs for now)
+- `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's major exam datesheet
 - `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
