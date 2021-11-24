@@ -13,14 +13,15 @@ intents.members = True
 client = discord.Client(intents=intents)
 
 
-async def checkmail(channel, old_mails={}):
-    print("Checking for mails "+str(datetime.datetime.now()))
-    new_mails = utils.fetch_circulars()
-    for m in new_mails:
-        if m not in old_mails:
-            await channel.send("**"+str(m)[:400]+"**"+'\n'+str(new_mails[m])[:1500])
-    await asyncio.sleep(60)
-    await checkmail(channel, new_mails)
+async def checkmail(channel, to, old_mails={}):
+    while True:
+        print("Checking for mails "+str(datetime.datetime.now()))
+        new_mails = utils.fetch_circulars(to)
+        for m in new_mails:
+            if m not in old_mails:
+                await channel.send("@everyone **"+str(m)[:150]+"**"+'\n'+str(new_mails[m])[:1800])
+        await asyncio.sleep(60)
+        old_mails = new_mails
 
 
 async def set(message, id, kerberos):
@@ -51,7 +52,7 @@ async def set(message, id, kerberos):
         try:
             await user.add_roles(discord.utils.get(message.guild.roles, name = year))
         except:
-            await message.reply("No role exists for `"+year+"`. Please request admin to create")
+            print("No role exists for `"+year+"`. Please request admin to create")
 
         hostel = str(utils.kerberos_lookup[kerberos]["hostel"])
         for h in utils.hostels:
@@ -60,7 +61,7 @@ async def set(message, id, kerberos):
         try:
             await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
         except:
-            await message.reply("No role exists for `"+hostel+"`. Please request admin to create")
+            print("No role exists for `"+hostel+"`. Please request admin to create")
 
         branch = str(kerberos[:3]).upper()
         for b in utils.branches:
@@ -69,7 +70,7 @@ async def set(message, id, kerberos):
         try:
             await user.add_roles(discord.utils.get(message.guild.roles, name = branch))
         except:
-            await message.reply("No role exists for `"+branch+"`. Please request admin to create")
+            print("No role exists for `"+branch+"`. Please request admin to create")
 
         course = utils.get_student_courses(kerberos)
         for c in utils.courses:
@@ -79,82 +80,81 @@ async def set(message, id, kerberos):
             try:
                 await user.add_roles(discord.utils.get(message.guild.roles, name = c))
             except:
-                await message.reply("No role exists for `"+c+"`. Please request admin to create")
+                print("No role exists for `"+c+"`. Please request admin to create")
+        await message.reply("Successfully set kerberos!")
     else:
         await message.reply("Could not find `"+kerberos+"` in kerberos database.")
 
 
-async def update(message):
+async def update(message, log):
     discord_ids = json.load(open("discord_ids.json"))
-    logs = []
     kerb_id = {}
     async for user in message.guild.fetch_members(limit=None):
         id = str(user.id)
         if id not in discord_ids:
             if discord.utils.get(message.guild.roles, name = "Bot") not in user.roles:
-                logs.append("ERROR: Did not find `"+user.name+"` in discord_ids"+'\n')
+                log.write("ERROR: Did not find `"+user.name+"` in discord_ids"+'\n')
             continue
         kerberos = str(discord_ids[id]['kerberos'])
         if kerberos in kerb_id:
-            logs.append("WARNING: DUPLICATE key `"+kerberos+"` for `"+user.name+"` and `"+discord_ids[kerb_id[kerberos]]['kerberos']+"`\n")
+            log.write("WARNING: DUPLICATE key `"+kerberos+"` for `"+user.name+"` and `"+discord_ids[kerb_id[kerberos]]['kerberos']+"`\n")
         else:
             kerb_id[kerberos] = id
         if kerberos in utils.kerberos_lookup:
             name = str(utils.kerberos_lookup[kerberos]["name"])
             if name != user.nick and name != user.name:
-                logs.append("WARNING: NICK for `"+user.name+"` expected: `"+name+"`, found: `"+str(user.nick)+"`\n")
+                log.write("WARNING: NICK for `"+user.name+"` expected: `"+name+"`, found: `"+str(user.nick)+"`\n")
 
             year = "20"+str(kerberos[3:5])
             for y in utils.years:
                 if y != year and discord.utils.get(message.guild.roles, name = y) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = y))
-                    logs.append("ACTION: Removed role `"+y+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Removed role `"+y+"` for `"+user.name+"`\n")
             if discord.utils.get(message.guild.roles, name = year) not in user.roles:
                 try:
                     await user.add_roles(discord.utils.get(message.guild.roles, name = year))
-                    logs.append("ACTION: Added role `"+year+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Added role `"+year+"` for `"+user.name+"`\n")
                 except:
-                    logs.append("WARNING: ROLE not found `"+year+"`"+'\n')
+                    log.write("WARNING: ROLE not found `"+year+"`"+'\n')
 
             hostel = str(utils.kerberos_lookup[kerberos]["hostel"])
             for h in utils.hostels:
                 if h != hostel and discord.utils.get(message.guild.roles, name = h) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = h))
-                    logs.append("ACTION: Removed role `"+h+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Removed role `"+h+"` for `"+user.name+"`\n")
             if discord.utils.get(message.guild.roles, name = hostel) not in user.roles:
                 try:
                     await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
-                    logs.append("ACTION: Added role `"+hostel+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Added role `"+hostel+"` for `"+user.name+"`\n")
                 except:
-                    logs.append("WARNING: ROLE not found `"+hostel+"`"+'\n')
+                    log.write("WARNING: ROLE not found `"+hostel+"`"+'\n')
 
             branch = str(kerberos[:3]).upper()
             for b in utils.branches:
                 if b.upper() != branch and discord.utils.get(message.guild.roles, name = b.upper()) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = b.upper()))
-                    logs.append("ACTION: Removed role `"+b.upper()+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Removed role `"+b.upper()+"` for `"+user.name+"`\n")
             if discord.utils.get(message.guild.roles, name = branch) not in user.roles:
                 try:
                     await user.add_roles(discord.utils.get(message.guild.roles, name = branch))
-                    logs.append("ACTION: Added role `"+branch+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Added role `"+branch+"` for `"+user.name+"`\n")
                 except:
-                    logs.append("WARNING: ROLE not found `"+branch+"`"+'\n')
+                    log.write("WARNING: ROLE not found `"+branch+"`"+'\n')
 
             course = utils.get_student_courses(kerberos)
             for c in utils.courses:
                 if c not in course and discord.utils.get(message.guild.roles, name = c) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
-                    logs.append("ACTION: Removed role `"+c+"` for `"+user.name+"`\n")
+                    log.write("ACTION: Removed role `"+c+"` for `"+user.name+"`\n")
             for c in course:
                 if discord.utils.get(message.guild.roles, name = c) not in user.roles:
                     try:
                         await user.add_roles(discord.utils.get(message.guild.roles, name = c))
-                        logs.append("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
+                        log.write("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
                     except:
-                        logs.append("WARNING: ROLE not found `"+c+"`"+'\n')
+                        log.write("WARNING: ROLE not found `"+c+"`"+'\n')
         else:
-            logs.append("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
-    return logs
+            log.write("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
 
 @client.event
 async def on_ready():
@@ -178,13 +178,12 @@ async def on_message(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
-- `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's major exam datesheet
 - `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
 _Manager only_ -
 - `?edit <kerberos> @User` to edit kerberos for some user
-- `?checkmail #Channel` to track circular emails on that channel every minute
+- `?checkmail <mail-to> #Channel` to track circular emails on that channel every minute
 - `?update` to update roles for all registered users
 - `?reload` to reload the database from `.csv` and `.json` files
 - `?fetchldap` to fetch courses data from ldap and reload
@@ -247,23 +246,6 @@ and leave a :star: if you like it
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
     
-    if message.content.lower().startswith("?major"):
-        command = message.content.lower().split()
-        try:
-            kerberos = []
-            users = json.load(open("discord_ids.json"))
-            for id in message.raw_mentions:
-                kerberos.append(users[str(id)]["kerberos"])
-            for k in command:
-                if k[0].isalnum():
-                    kerberos.append(k)
-            if len(kerberos) == 0:
-                kerberos.append(users[str(message.author.id)]["kerberos"])
-            for k in kerberos:
-                await message.reply(k+"\n```\n"+utils.getMajor(k)+"\n```") 
-        except:
-            await message.reply("Command is `?major` (self) or `?major <kerberos>` or `?major @User`")
-    
     
     if message.content.lower().startswith("?mess"):
         command = message.content.title().split()
@@ -306,18 +288,18 @@ and leave a :star: if you like it
 
     if message.content.lower().startswith("?checkmail"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
+            to = message.content.lower().split()[1]
             for c in message.raw_channel_mentions:
                 channel = message.guild.get_channel(c)
-                await message.reply("Tracking mail on <#"+str(channel.id)+">")
-                await checkmail(channel)
+                await message.reply("Tracking mail to `"+to+"` on <#"+str(channel.id)+">")
+                await checkmail(channel, to)
         else:
             await message.reply("Only server managers can use this command")
 
     if message.content.lower().startswith("?update"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
-            with open('log.txt', 'w') as f:
-                f.writelines(await update(message))
-                await message.reply(file= discord.File('log.txt'))
+            await update(message, open('log.txt', 'w'))
+            await message.reply(file= discord.File('log.txt'))
         else:
             await message.reply("Only server managers can use this command")
 

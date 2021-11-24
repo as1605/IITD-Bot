@@ -109,15 +109,23 @@ def get_student_courses(kerberos):
     return courses
 
 
-def fetch_circulars():
-    load_dotenv()
+def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
+    try:
+        load_dotenv()
+    except:
+        print("ERROR: Failed to load dotenv!")
+        return {}
     IITD_EMAIL = os.getenv('IITD_EMAIL')
     IITD_PASS = os.getenv('IITD_PASS')
     SERVER = 'mailstore.iitd.ac.in'
-    mail = imaplib.IMAP4_SSL(SERVER)
-    mail.login(IITD_EMAIL, IITD_PASS)
-    mail.select('inbox', readonly=True)
-    status, data = mail.search(None, 'ALL')
+    try:
+        mail = imaplib.IMAP4_SSL(SERVER)
+        mail.login(IITD_EMAIL, IITD_PASS)
+        mail.select('inbox', readonly=True)
+        status, data = mail.search(None, 'ALL')
+    except:
+        print("ERROR: Network connection failed!")
+        return {}
     mail_ids = []
     for block in data:
         mail_ids += block.split()
@@ -127,11 +135,8 @@ def fetch_circulars():
         for response_part in data:
             if isinstance(response_part, tuple):
                 message = email.message_from_bytes(response_part[1])
-                if 'allstudents@circular.iitd.ac.in' not in message['X-Original-To']:
-                    if 'allbtech@circular.iitd.ac.in' not in message['X-Original-To']:
-                        if 'alldual@circular.iitd.ac.in' not in message['X-Original-To']:
-                            if 'allintegrated@circular.iitd.ac.in' not in message['X-Original-To']:
-                                continue
+                if to not in message['X-Original-To']:
+                    continue
                 mail_subject = message['subject']
                 print("SUBJECT: " + mail_subject)
                 if message.is_multipart():
@@ -215,140 +220,6 @@ days = {
 }
 
 
-
-major_days = {
-    15 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "End time 12:00/16:00",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    16 : {
-        "A" : "",
-        "B" : "End time 12:00/16:00",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    17 : {
-        "A" : "End time 12:00",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    18 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "End time 12:00/16:00",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },    
-    19 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },  
-    20 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "End time 16:00/20:00",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    21 : {
-        "A" : "",
-        "B" : "",
-        "C" : "End time 12:00",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    22 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "End time 12:00",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-    23 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "",
-        "K" : "End time 16:00",
-        "L" : "",
-        "M" : "End time 12:00",
-    },
-    24 : {
-        "A" : "",
-        "B" : "",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "",
-        "J" : "End time 12:00",
-        "K" : "",
-        "L" : "",
-        "M" : "",
-    },
-}
-
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
@@ -368,25 +239,3 @@ def createTimeTable(kerberos):
             tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
         tt+='\n'
     return tt
-
-def getMajor(kerberos):
-    timetable = [[] for i in range(10)]
-    for course in get_student_courses(kerberos):
-        try : 
-            slot = course_slots[course[:6]]
-            for i in range(10): 
-                if major_days[i+15][slot] != "":
-                    timetable[i].append((slot,course,major_days[i+15][slot]))
-                timetable[i].sort()
-        except:
-            print(course+" Not found")
-    week = ["15 Nov","16 Nov","17 Nov","18 Nov","19 Nov","20 Nov","21 Nov","22 Nov","23 Nov","24 Nov"]
-    tt = ""
-    for i in range(10):
-        if len(timetable[i]) == 0:
-            continue
-        tt+=week[i] + '\t'
-        for tup in timetable[i]:
-            tt+=tup[1] +'\t'
-        tt+='\n'
-    return tt 

@@ -9,13 +9,12 @@ Discord bot to administer IITD'20 Acad Server
 * `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 * `?slot <course>` to get slot for a course
 * `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
-* `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's major exam datesheet
 * `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 * Works for multiple inputs too! Try `?slot COL106 COL202`
 
 ### Manager only
 * `?edit <kerberos> @User` to edit kerberos for some user
-* `?checkmail #Channel` to track circular emails on that channel every minute
+* `?checkmail <mail-to> #Channel` to track circular emails on that channel every minute
 * `?update` to update roles for all registered users
 * `?reload` to reload the database from `.csv` and `.json` files
 * `?fetchldap` to fetch courses data from ldap and reload
