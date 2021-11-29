@@ -16,9 +16,14 @@ hostels = []
 branches = []
 courses = []
 years = ["2017", "2018", "2019", "2020", "2021", "2022"]
+days = []
 
 
 def reload():
+    global days
+    days = []
+    days = json.load(open("day_slots.json"))
+
     global mess
     mess = {}
     mess = json.load(open("mess.json"))
@@ -93,10 +98,10 @@ def get_course_slots():
     with open('Courses_Offered.csv', newline='') as csvfile:
         sheet = csv.reader(csvfile, delimiter=',')
         for s in sheet:
-            course = s[1].split('-')[-1][:6]
-            if course in course_lists:
-                slot = s[3]
-                course_slots[course] = slot
+            course = s[1].split('-')[-1]
+            #if course in course_lists:
+            slot = s[3]
+            course_slots[course] = slot
     with open("course_slots.json", "w") as outfile:
         json.dump(course_slots, outfile)
 
@@ -150,83 +155,14 @@ def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
     return new_mails
 
 #PROGRAM TO CREATE COURSES TIMETABLE 
-
-days = {
-    0 : {
-        "A" : "8-9:30 AM",
-        "B" : "9:30-11AM",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "",
-        "H" : "11-12 AM ",
-        "J" : "12-1 PM  ",
-        "K" : "",
-        "L" : "",
-        "M" : "5-6:30 PM"
-    },
-        1 : {
-        "A" : "",
-        "B" : "",
-        "C" : "8-9 AM   ",
-        "D" : "9-10 AM  ",
-        "E" : "10-11 AM ",
-        "F" : "11-12 PM ",
-        "H" : "",
-        "J" : "12-1 PM  ",
-        "K" : "5-6 PM   ",
-        "L" : "6-7 PM   ",
-        "M" : ""
-    },
-        2 : {
-        "A" : "",
-        "B" : "",
-        "C" : "8-9 AM   ",
-        "D" : "9-10 AM  ",
-        "E" : "10-11 AM ",
-        "F" : "",
-        "H" : "11-12 PM ",
-        "J" : "",
-        "K" : "12-1 PM  ",
-        "L" : "",
-        "M" : ""
-    }, 
-        3 : {
-        "A" : "8-9:30 AM",
-        "B" : "9:30-11AM",
-        "C" : "",
-        "D" : "",
-        "E" : "",
-        "F" : "11-12 AM ",
-        "H" : "12-1 PM  ",
-        "J" : "",
-        "K" : "",
-        "L" : "",
-        "M" : "5-6:30 PM"
-    },
-        4 : {
-        "A" : "",
-        "B" : "",
-        "C" : "8-9 AM   ",
-        "D" : "9-10 AM  ",
-        "E" : "10-11 AM ",
-        "F" : "11-12 PM ",
-        "H" : "",
-        "J" : "12-1 PM  ",
-        "K" : "5-6 PM   ",
-        "L" : "6-7 PM   ",
-        "M" : ""
-    }
-}
-
-
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
         try : 
-            slot = course_slots[course[:6]]
+            slot = course_slots[course]
+            print(slot)
             for i in range(5): 
-                if days[i][slot] != "":
+                if slot in days[i]:
                     timetable[i].append((slot,course,days[i][slot]))
                 timetable[i].sort()
         except:
@@ -236,6 +172,9 @@ def createTimeTable(kerberos):
     for i in range(5):
         tt+=week[i]+'\n'
         for tup in timetable[i]:
-            tt+=tup[2] + ": " + tup[1] + ' ('+ tup[0] + ')' +'\n'
+            tt+=tup[2] + ": " + tup[1] +'\n'
         tt+='\n'
     return tt
+
+
+reload()
