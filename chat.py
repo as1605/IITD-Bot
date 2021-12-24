@@ -1,4 +1,4 @@
-from . import utils
+import utils
 import datetime
 import asyncio
 import json
@@ -99,7 +99,6 @@ async def set(message, id, kerberos):
     else:
         await message.reply("Could not find `"+kerberos+"` in kerberos database.")
 
-
 async def update(message, log):
     discord_ids = json.load(open("discord_ids.json"))
     kerb_id = {}
@@ -129,8 +128,7 @@ async def update(message, log):
                     await user.add_roles(discord.utils.get(message.guild.roles, name = year))
                     log.write("ACTION: Added role `"+year+"` for `"+user.name+"`\n")
                 except:
-                    pass
-                    #log.write("WARNING: ROLE not found `"+year+"`"+'\n')
+                    log.write("WARNING: ROLE not found `"+year+"`"+'\n')
 
             hostel = str(utils.kerberos_lookup[kerberos]["hostel"])
             for h in utils.hostels:
@@ -142,8 +140,16 @@ async def update(message, log):
                     await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
                     log.write("ACTION: Added role `"+hostel+"` for `"+user.name+"`\n")
                 except:
-                    pass
-                    #log.write("WARNING: ROLE not found `"+hostel+"`"+'\n')
+                    try:
+                        await message.guild.create_role(name=hostel)
+                        utils.hostels.append(hostel)
+                        with open("hostels.csv", "w") as f:
+                            await f.write('\n'.join(utils.hostels))
+                        await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
+                        await message.reply("ACTION: ROLE created: `"+hostel+"`"+'\n')
+                        log.write("ACTION: ROLE created: `"+hostel+"`"+'\n')
+                    except:
+                        log.write("WARNING: ROLE not found `"+hostel+"`"+'\n')
 
             branch = str(kerberos[:3]).upper()
             for b in utils.branches:
@@ -155,8 +161,16 @@ async def update(message, log):
                     await user.add_roles(discord.utils.get(message.guild.roles, name = branch))
                     log.write("ACTION: Added role `"+branch+"` for `"+user.name+"`\n")
                 except:
-                    pass
-                    #log.write("WARNING: ROLE not found `"+branch+"`"+'\n')
+                    try:
+                        await message.guild.create_role(name=branch)
+                        utils.branches.append(branch)
+                        with open("branches.csv", "w") as f:
+                            await f.write('\n'.join(utils.branches))
+                        await user.add_roles(discord.utils.get(message.guild.roles, name = branch))
+                        await message.reply("ACTION: ROLE created: `"+branch+"`"+'\n')
+                        log.write("ACTION: ROLE created: `"+branch+"`"+'\n')
+                    except:
+                        log.write("WARNING: ROLE not found `"+branch+"`"+'\n')
 
             course = utils.get_student_courses(kerberos)
             for c in utils.courses:
@@ -169,7 +183,15 @@ async def update(message, log):
                         await user.add_roles(discord.utils.get(message.guild.roles, name = c))
                         log.write("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
                     except:
-                        pass
-                        #log.write("WARNING: ROLE not found `"+c+"`"+'\n')
+                        try:
+                            await message.guild.create_role(name=c)
+                            utils.courses.append(c)
+                            with open("courses.csv", "w") as f:
+                                await f.write('\n'.join(utils.courses))
+                            await user.add_roles(discord.utils.get(message.guild.roles, name = c))
+                            await message.reply("ACTION: ROLE created: `"+c+"`"+'\n')
+                            log.write("ACTION: ROLE created: `"+c+"`"+'\n')
+                        except:
+                            log.write("WARNING: ROLE not found `"+c+"`"+'\n')
         else:
             log.write("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')

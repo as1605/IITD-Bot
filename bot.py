@@ -1,6 +1,6 @@
 import datetime
-from . import utils
-from . import chat
+import utils
+import chat
 import discord
 import json
 import os
@@ -78,7 +78,7 @@ async def on_message(message):
             if len(kerberos) == 0:
                 kerberos.append(users[str(message.author.id)]["kerberos"])
             for k in kerberos:
-                await message.reply(f"{k}\n```\n{utils.createTimeTable(k)}\n```") 
+                await message.reply(f"{k}{chr(10)}```{chr(10)}{utils.createTimeTable(k)}{chr(10)}```") 
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
@@ -106,7 +106,7 @@ async def on_message(message):
             
             for h in hostel:
                 for d in days:
-                    await message.reply(f"`{h}` `{calendar.day_name[d]}` \n```\n{'\n'.join(utils.mess[h][d])} \n```")
+                    await message.reply(f"`{h}` `{calendar.day_name[d]}`"+ "\n```\n"+'\n'.join(utils.mess[h][d])+"\n```")
         except:
             await message.reply("Command is `?mess` (self) or `?mess <hostel> -<day>`")
 
@@ -126,12 +126,37 @@ async def on_message(message):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
             to = message.content.lower().split()[1]
             for c in message.raw_channel_mentions:
-                channel = message.guild.get_channel(c)
-                await message.reply(f"Tracking mail to `{to}` on <#{str(channel.id)}>")
-                await chat.checkmail(channel, to)
+                try:
+                    channel = message.guild.get_channel(c)
+                    await message.reply(f"Tracking mail to `{to}` on <#{str(channel.id)}>")
+                    await chat.checkmail(channel, to)
+                except:
+                    await message.reply(f"Cannot track to `{to}` on `{c}`")
+        else:
+            await message.reply("Only server managers can use this command")
+    
+    if message.content.lower().startswith("?download"):
+        if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
+            command = message.content.split()
+            for file in command[1:]:
+                try:
+                    await message.reply(file= discord.File(file))
+                except:
+                    await message.reply(f"Could not send `{file}`")
         else:
             await message.reply("Only server managers can use this command")
 
+    if message.content.lower().startswith("?upload"):
+        if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
+            for file in message.attachments:
+                try:
+                    with open(file.filename, 'wb') as f:
+                        await file.save(f)
+                except:
+                    await message.reply(f"Could not save `{file}`")
+        else:
+            await message.reply("Only server managers can use this command")
+    
     if message.content.lower().startswith("?update"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
             await chat.update(message, open('log.txt', 'w'))
