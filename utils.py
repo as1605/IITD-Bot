@@ -160,7 +160,6 @@ def createTimeTable(kerberos):
     for course in get_student_courses(kerberos):
         try : 
             slot = course_slots[course]
-            print(slot)
             for i in range(5): 
                 if slot in days[i]:
                     timetable[i].append((slot,course,days[i][slot]))
