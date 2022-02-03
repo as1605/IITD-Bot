@@ -12,6 +12,30 @@ intents = discord.Intents.default()
 intents.members = True
 client = discord.Client(intents=intents)
 
+log = []
+async def checkspam(message):
+    if message.content == "" or message.author.bot:
+        return False
+    log.append(message)
+    if len(log) > 25:
+        log.pop(0)
+    same = []
+    for l in log:
+        if l.author == message.author and l.content == message.content:
+            same.append(l)
+    if len(same) > 3:
+        for m in same:
+            try:
+                print(f"!ALERT!{message.guild}!{message.channel}!{message.author}!")
+                with open("spam.txt", "a") as messages:
+                    messages.write(str(m))
+                # await m.reply("`[REDACTED]`")
+                await m.delete()
+            except:
+                print("[ERROR] couldn't delete")
+        return True
+    return False
+
 
 @client.event
 async def on_ready():
@@ -20,6 +44,9 @@ async def on_ready():
 @client.event
 async def on_message(message):
     if message.author == client.user:
+        return
+
+    if await checkspam(message):
         return
 
     if message.content.lower().startswith("hello"):
@@ -66,6 +93,9 @@ async def on_message(message):
             await message.reply("Command is `?slot <course>`")
 
     if message.content.lower().startswith("?tt"):
+        if message.channel.name != "bot-commands":
+            await message.reply("Please use `#bot-commands` channel")
+            return
         command = message.content.lower().split()
         try:
             kerberos = []
@@ -83,6 +113,9 @@ async def on_message(message):
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
     if message.content.lower().startswith("?mess"):
+        if message.channel.name != "bot-commands":
+            await message.reply("Please use `#bot-commands` channel")
+            return
         command = message.content.title().split()
         try:
             hostel = []
