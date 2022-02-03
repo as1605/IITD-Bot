@@ -15,7 +15,7 @@ async def checkmail(channel, to, old_mails={}):
         old_mails = new_mails
 
 async def help(message):
-    message.reply(
+    await message.reply(
 """
 **Commands**
 - `hello` to check if bot is online
@@ -87,6 +87,7 @@ async def set(message, id, kerberos):
             print("No role exists for `"+branch+"`. Please request admin to create")
 
         course = utils.get_student_courses(kerberos)
+        course = [a.replace("2102-","") for a in course]
         for c in utils.courses:
             if discord.utils.get(message.guild.roles, name = c) in user.roles:
                 await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
@@ -107,8 +108,11 @@ async def update(message, log):
         if id not in discord_ids:
             if discord.utils.get(message.guild.roles, name = "Bot") not in user.roles:
                 log.write("ERROR: Did not find `"+user.name+"` in discord_ids"+'\n')
+                # await user.kick(reason="Please set your kerberos id on #bot-channel using ?set command https://discord.gg/djtyh56jse")
+                # log.write("ACTION: KICKED `"+user.name+"`"+'\n')
             continue
         kerberos = str(discord_ids[id]['kerberos'])
+        # print(kerberos)
         if kerberos in kerb_id:
             log.write("WARNING: DUPLICATE key `"+kerberos+"` for `"+user.name+"` and `"+discord_ids[kerb_id[kerberos]]['kerberos']+"`\n")
         else:
@@ -173,25 +177,32 @@ async def update(message, log):
                         log.write("WARNING: ROLE not found `"+branch+"`"+'\n')
 
             course = utils.get_student_courses(kerberos)
+            course2 = [a.replace("2102-","") for a in course]
             for c in utils.courses:
-                if c not in course and discord.utils.get(message.guild.roles, name = c) in user.roles:
+                if c not in course2 and discord.utils.get(message.guild.roles, name = c) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
                     log.write("ACTION: Removed role `"+c+"` for `"+user.name+"`\n")
             for c in course:
-                if discord.utils.get(message.guild.roles, name = c) not in user.roles:
-                    try:
-                        await user.add_roles(discord.utils.get(message.guild.roles, name = c))
-                        log.write("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
-                    except:
+                if c.startswith("2102-") or c=="NEN100" or c=="Onboarded":
+                    if c.startswith("2102-"):
+                        c = c[5:]
+                    if discord.utils.get(message.guild.roles, name = c) not in user.roles:
                         try:
-                            await message.guild.create_role(name=c)
-                            utils.courses.append(c)
-                            with open("courses.csv", "w") as f:
-                                await f.write('\n'.join(utils.courses))
+                            print(c)
                             await user.add_roles(discord.utils.get(message.guild.roles, name = c))
-                            await message.reply("ACTION: ROLE created: `"+c+"`"+'\n')
-                            log.write("ACTION: ROLE created: `"+c+"`"+'\n')
+                            log.write("ACTION: Added role `"+c+"` for `"+user.name+"`\n")
+                        # except:
+                        #     try:
+                        #         print("CREATING "+c)
+                        #         print(await message.guild.create_role(name=c))
+                        #         utils.courses.append(c)
+                        #         with open("courses.csv", "w") as f:
+                        #             await f.write('\n'.join(utils.courses))
+                        #         await user.add_roles(discord.utils.get(message.guild.roles, name = c))
+                        #         await message.reply("ACTION: ROLE created: `"+c+"`"+'\n')
+                        #         log.write("ACTION: ROLE created: `"+c+"`"+'\n')
                         except:
                             log.write("WARNING: ROLE not found `"+c+"`"+'\n')
         else:
             log.write("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
+        log.flush()

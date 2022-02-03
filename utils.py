@@ -158,6 +158,8 @@ def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
+        if kerberos[4] != '1':
+            course = course[5:]
         try : 
             slot = course_slots[course]
             for i in range(5): 
