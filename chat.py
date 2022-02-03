@@ -1,3 +1,4 @@
+import requests
 import utils
 import datetime
 import asyncio
@@ -34,7 +35,7 @@ _Manager only_ -
 - `?reload` to reload the database from `.csv` and `.json` files
 - `?fetchldap` to fetch courses data from ldap and reload
 
-Curious how this works? Check out the source code at https://github.com/as1605/IITD-Bot 
+Curious how this works? Check out the source code at https://github.com/as1605/IITD-Bot
 and leave a :star: if you like it
 """)
 
@@ -62,7 +63,7 @@ async def set(message, id, kerberos):
         year = "20"+str(kerberos[3:5])
         for y in utils.years:
             if discord.utils.get(message.guild.roles, name = y) in user.roles:
-                await user.remove_roles(discord.utils.get(message.guild.roles, name = y))  
+                await user.remove_roles(discord.utils.get(message.guild.roles, name = y))
         try:
             await user.add_roles(discord.utils.get(message.guild.roles, name = year))
         except:
@@ -71,7 +72,7 @@ async def set(message, id, kerberos):
         hostel = str(utils.kerberos_lookup[kerberos]["hostel"])
         for h in utils.hostels:
             if discord.utils.get(message.guild.roles, name = h) in user.roles:
-                await user.remove_roles(discord.utils.get(message.guild.roles, name = h))  
+                await user.remove_roles(discord.utils.get(message.guild.roles, name = h))
         try:
             await user.add_roles(discord.utils.get(message.guild.roles, name = hostel))
         except:
@@ -206,3 +207,11 @@ async def update(message, log):
         else:
             log.write("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
         log.flush()
+
+async def mess_menu(hostel):
+    url = 'https://jasrajsb.github.io/iitd-api/v1/mess-menu/' + hostel + '.json'
+    headers = {'user-agent': 'iitd-bot/1.0.0'}
+    response = requests.get(url, headers=headers)
+    return response
+
+
