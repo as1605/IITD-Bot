@@ -1,11 +1,9 @@
-import datetime
 import utils
 import chat
 import discord
 import json
 import os
 from dotenv import load_dotenv
-import calendar
 
 
 intents = discord.Intents.default()
@@ -118,31 +116,9 @@ async def on_message(message):
             return
         command = message.content.title().split()
         try:
-            hostel = []
-            days = []
-            
-            for c in command:
-                if c in utils.hostels:
-                    hostel.append(c)
-            if len(hostel) == 0:
-                kerberos = json.load(open("discord_ids.json"))[str(message.author.id)]["kerberos"]
-                hostel.append(utils.kerberos_lookup[kerberos]["hostel"])
-            
-            for c in command:
-                if c[0] == '-':
-                    if c.startswith("-All"):
-                        days = list(range(7))
-                        break
-                    days.append(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].index(c[1:4]))
-            if len(days) == 0:
-                days.append(datetime.datetime.now().weekday())
-            
-            for h in hostel:
-                for d in days:
-                    await message.reply(f"`{h}` `{calendar.day_name[d]}`"+ "\n```\n"+'\n'.join(utils.mess[h][d])+"\n```")
+            await chat.mess(message, command)
         except:
-            await message.reply("Command is `?mess` (self) or `?mess <hostel> -<day>`")
-
+            await message.reply("Command is `?mess` (self) or `?mess @User` or `?mess <hostel> -<day>`")
 
     if message.content.lower().startswith("?edit"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:

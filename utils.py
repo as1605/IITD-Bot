@@ -1,4 +1,5 @@
 import json
+from urllib import response
 from bs4 import BeautifulSoup
 import requests
 import csv
@@ -11,7 +12,7 @@ from dotenv import load_dotenv
 course_lists = {}
 kerberos_lookup = {}
 course_slots = {}
-mess = {}
+# mess = {}
 hostels = []
 branches = []
 courses = []
@@ -24,9 +25,9 @@ def reload():
     days = []
     days = json.load(open("day_slots.json"))
 
-    global mess
-    mess = {}
-    mess = json.load(open("mess.json"))
+    # global mess
+    # mess = {}
+    # mess = json.load(open("mess.json"))
 
     global course_lists
     course_lists = {}
@@ -176,6 +177,18 @@ def createTimeTable(kerberos):
             tt+=tup[2] + ": " + tup[1] +'\n'
         tt+='\n'
     return tt
+
+
+def mess_menu(hostel):
+    url = 'https://jasrajsb.github.io/iitd-api/v1/mess-menu/' + hostel.lower() + '.json'
+    headers = {'user-agent': 'iitd-bot/1.0.0'}
+    response = requests.get(url, headers=headers)
+
+    menu = {}
+    for r in response.json():
+        menu[r["day"][:3]] = r["menu"]
+
+    return menu
 
 
 reload()

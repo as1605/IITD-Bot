@@ -9,7 +9,7 @@ Discord bot to administer IITD'20 Acad Server
 * `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 * `?slot <course>` to get slot for a course
 * `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
-* `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
+* `?mess` (self)(today) or `?mess @User` or `?mess <hostel> -<day>` to get mess menu for the hostel on that day. Uses (Mess API)[https://jasrajsb.github.io/iitd-api/]
 * Works for multiple inputs too! Try `?slot COL106 COL202`
 
 ### Manager only

@@ -1,9 +1,9 @@
-import requests
 import utils
 import datetime
 import asyncio
 import json
 import discord
+import calendar
 
 async def checkmail(channel, to, old_mails={}):
     while True:
@@ -25,7 +25,7 @@ async def help(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
-- `?mess` (self)(today) or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
+- `?mess` (self)(today) or `?mess @User` or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
 _Manager only_ -
@@ -208,10 +208,42 @@ async def update(message, log):
             log.write("ERROR: Could not find `"+kerberos+"` in kerberos database"+'\n')
         log.flush()
 
-async def mess_menu(hostel):
-    url = 'https://jasrajsb.github.io/iitd-api/v1/mess-menu/' + hostel + '.json'
-    headers = {'user-agent': 'iitd-bot/1.0.0'}
-    response = requests.get(url, headers=headers)
-    return response
-
+async def mess(message, command):
+    hostel = []
+    days = []
+    
+    for c in command:
+        if c in utils.hostels:
+            hostel.append(c)
+    for id in message.raw_mentions:
+        kerberos = json.load(open("discord_ids.json"))[str(id)]["kerberos"]
+        hostel.append(utils.kerberos_lookup[kerberos]["hostel"])
+    if len(hostel) == 0:
+        kerberos = json.load(open("discord_ids.json"))[str(message.author.id)]["kerberos"]
+        hostel.append(utils.kerberos_lookup[kerberos]["hostel"])
+    
+    for c in command:
+        if c[0] == '-':
+            if c.startswith("-All"):
+                days = calendar.day_abbr[0:7]
+                break
+            for d in ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]:
+                if c[1:4].lower() == d.lower():
+                    days.append(d)
+    if len(days) == 0:
+        days.append(calendar.day_abbr[datetime.datetime.now().weekday()])
+    
+    for h in hostel:
+        menu = {}
+        try:
+            menu = utils.mess_menu(h)
+        except:
+            await message.reply("Mess API is down, please try again later")
+            return
+        for d in days:
+            today = menu[d]
+            msg = ""
+            for meal in today:
+                msg += f"**{meal['name']}** ({meal['time']}): `{meal['menu']}`\n"
+            await message.reply(f"`{h}` `{d}`\n"+ msg)
 
