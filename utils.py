@@ -70,7 +70,7 @@ def reload():
     courseinfo = {}
     with open("raw_course_data_2.xml") as cdata:
         s = "".join(cdata.readlines())
-        tree = BeautifulSoup(s)
+        tree = BeautifulSoup(s, 'lxml')
 
     # handling missing courses as well: 
     mscidx = 0
@@ -81,7 +81,7 @@ def reload():
                 ccode = f"MISS{mscidx}"
                 mscidx += 1
 
-            rows[ccode] = {
+            courseinfo[ccode] = {
                 "code": ccode,
                 "name": getattr(course.find("name"), "string", None),
                 "credits": getattr(course.find("credits"), "string", None),
@@ -217,13 +217,16 @@ def mess_menu(hostel):
     return menu
 
 def course_info(code):
+    code = code.upper()
     if code not in courseinfo:
         return code + " cannot be found!"
     course = courseinfo[code]
-    return f"""{course['code']} - {course['name']}
-    {course['credits'] Credits ({course['credit-structure']})
-    Pre-requisites: {course['pre-requisites']}
-    Overlap: {course['overlap']}
-    Description: {course['description']}"""
+    return f"""**{course['code']} - {course['name']}**
+Credits: `{course['credits']}` `({course['credit-structure']})`
+Pre-requisites: `{course['pre-requisites']}`
+Overlap: `{course['overlap']}`
+Description: ```
+{course['description']}
+```"""
 
 reload()

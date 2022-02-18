@@ -8,6 +8,7 @@ Discord bot to administer IITD'20 Acad Server
 * `?set <kerberos>` to set your kerberos and automatically assign role for branch, hostel and courses
 * `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 * `?slot <course>` to get slot for a course
+* `?info <course>` to get info for a course (name, credits, pre reqs, overlaps, description). Uses [IITD Course Planner](https://github.com/Aniruddha-Deb/IIT_course_planner)
 * `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
 * `?mess` (self)(today) or `?mess @User` or `?mess <hostel> -<day>` to get mess menu for the hostel on that day. Uses [Mess API](https://jasrajsb.github.io/iitd-api/)
 * Works for multiple inputs too! Try `?slot COL106 COL202`

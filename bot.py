@@ -95,7 +95,7 @@ async def on_message(message):
         try:
             for course in command:
                 if course.isalnum():
-                    await message.reply(f"```\n{utils.course_info(course)}\n```")
+                    await message.reply(utils.course_info(course))
         except:
             await message.reply("Command is `?info <course>+`")
 
