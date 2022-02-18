@@ -16,6 +16,7 @@ course_slots = {}
 hostels = []
 branches = []
 courses = []
+courseinfo = {}
 years = ["2017", "2018", "2019", "2020", "2021", "2022"]
 days = []
 
@@ -65,6 +66,31 @@ def reload():
         for s in sheet:
             courses.append(s[0])
 
+    global courseinfo
+    courseinfo = {}
+    with open("raw_course_data_2.xml") as cdata:
+        s = "".join(cdata.readlines())
+        tree = BeautifulSoup(s)
+
+    # handling missing courses as well: 
+    mscidx = 0
+    for dep in tree.findAll("courses"):
+        for course in dep.findAll("course"):
+            ccode = getattr(course.find("code"), "string", None)
+            if not ccode:
+                ccode = f"MISS{mscidx}"
+                mscidx += 1
+
+            rows[ccode] = {
+                "code": ccode,
+                "name": getattr(course.find("name"), "string", None),
+                "credits": getattr(course.find("credits"), "string", None),
+                "credit-structure": getattr(course.find("credit-structure"), "string", None),
+                "pre-requisites": getattr(course.find("pre-requisites"), "string", None),
+                "overlap": getattr(course.find("overlap"), "string", None),
+                "department": dep.get("department"),
+                "description": getattr(course.find("description"), "string", None)
+            }
 
 def get_course_lists():
     url = "http://ldap1.iitd.ernet.in/LDAP/courses/gpaliases.html"
@@ -190,5 +216,14 @@ def mess_menu(hostel):
 
     return menu
 
+def course_info(code):
+    if code not in courseinfo:
+        return "That course does not exist"
+    course = courseinfo[code]
+    return f"""{course['code']} - {course['name']}
+    {course['credits'] Credits ({course['credit-structure']})
+    Pre-requisites: {course['pre-requisites']}
+    Overlap: {course['overlap']}
+    Description: {course['description']}"""
 
 reload()
