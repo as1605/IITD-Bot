@@ -218,7 +218,7 @@ def mess_menu(hostel):
 
 def course_info(code):
     if code not in courseinfo:
-        return "That course does not exist"
+        return code + " cannot be found!"
     course = courseinfo[code]
     return f"""{course['code']} - {course['name']}
     {course['credits'] Credits ({course['credit-structure']})
