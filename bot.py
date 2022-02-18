@@ -90,6 +90,15 @@ async def on_message(message):
         except:
             await message.reply("Command is `?slot <course>`")
 
+    if message.content.lower().startswith("?info"):
+        command = message.content.lower().split()
+        try:
+            for course in command:
+                if course.isalnum():
+                    await message.reply(f"```\n{utils.course_info(course)}\n```")
+        except:
+            await message.reply("Command is `?info <course>+`")
+
     if message.content.lower().startswith("?tt"):
         if message.channel.name != "bot-commands":
             await message.reply("Please use `#bot-commands` channel")
