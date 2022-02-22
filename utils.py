@@ -221,9 +221,18 @@ def course_info(code):
     if code not in courseinfo:
         return code + " cannot be found!"
     course = courseinfo[code]
+    dependencies = []
+    for c in courseinfo:
+        if code in str(courseinfo[c]['pre-requisites']):
+            dependencies.append(c)
+    if len(dependencies) > 0:
+        dep = ", ".join(dependencies)
+    else:
+        dep = None
     return f"""**{course['code']} - {course['name']}**
 Credits: `{course['credits']}` `({course['credit-structure']})`
 Pre-requisites: `{course['pre-requisites']}`
+Dependencies: `{dep}`
 Overlap: `{course['overlap']}`
 Description: ```
 {course['description']}
