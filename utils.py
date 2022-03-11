@@ -216,6 +216,27 @@ def mess_menu(hostel):
 
     return menu
 
+def mess_sheet(hostel):
+    id = json.load(open('mess_links.json'))[hostel.title()].split('/')[-2]
+    url = 'https://docs.google.com/spreadsheets/d/' + id + '/export?format=tsv'
+    response = requests.get(url)
+    table = [a.split('\t') for a in response.text.split('\r\n')]
+    days = table[0][5:12]
+    menu = {}
+    for i in range(5,12):
+        day = table[0][i][:3]
+        meals = []
+        for r in table:
+            if r[0] == '':
+                continue
+            meal = {}
+            meal['name'] = r[0]
+            meal['time'] = f"{r[1]} {r[2]} - {r[3]} {r[4]}"
+            meal['menu'] = r[i]
+            meals.append(meal)
+        menu[day] = meals
+    return menu
+
 def course_info(code):
     code = code.upper()
     if code not in courseinfo:

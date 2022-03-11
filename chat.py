@@ -237,7 +237,7 @@ async def mess(message, command):
     for h in hostel:
         menu = {}
         try:
-            menu = utils.mess_menu(h)
+            menu = utils.mess_sheet(h)
         except:
             await message.reply("Mess API is down, please try again later")
             return
