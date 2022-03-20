@@ -1,5 +1,4 @@
 import json
-from urllib import response
 from bs4 import BeautifulSoup
 import requests
 import csv
@@ -136,6 +135,8 @@ def get_course_slots():
 def get_student_courses(kerberos):
     courses = []
     for c in course_lists:
+        if c[:4] != "2102":
+            continue
         if kerberos in course_lists[c]:
             courses.append(c)
     return courses
@@ -185,8 +186,8 @@ def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
-        if kerberos[4] != '1':
-            course = course[5:]
+        # if kerberos[4] != '1':
+        course = course[5:]
         try : 
             slot = course_slots[course]
             for i in range(5): 
@@ -258,5 +259,23 @@ Overlap: `{course['overlap']}`
 Description: ```
 {course['description']}
 ```"""
+
+def yt(vc, token):
+    # https://discord.com/developers/docs/resources/channel#create-channel-invite
+    invite = requests.post('https://discord.com/api/v8/channels/' + vc + '/invites',
+        headers = { 'Authorization' : 'Bot ' + token },
+        json = {
+            'max_age': 604800,
+            'max_uses': 0,
+            'target_application_id': 880218394199220334,
+            'target_type': 2,
+            'temporary': False,
+            'unique': False,
+            'validate': None
+        })
+    if (invite.status_code != 200):
+        raise Exception(invite.text)
+    return 'https://discord.com/invite/'+invite.json()['code']
+
 
 reload()

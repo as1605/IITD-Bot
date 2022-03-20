@@ -11,6 +11,7 @@ Discord bot to administer IITD'20 Acad Server
 * `?info <course>` to get info for a course (name, credits, pre reqs, overlaps, description). Uses [IITD Course Planner](https://github.com/Aniruddha-Deb/IIT_course_planner)
 * `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
 * `?mess` (self)(today) or `?mess @User` or `?mess <hostel> -<day>` to get mess menu for the hostel on that day. Uses data from BHM records
+* `?yt` to launch a YouTube Together session, where you can watch youtube videos or lectures together in a voice channel
 * Works for multiple inputs too! Try `?slot COL106 COL202`
 
 ### Manager only

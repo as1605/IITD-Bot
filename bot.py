@@ -128,6 +128,16 @@ async def on_message(message):
             await chat.mess(message, command)
         except:
             await message.reply("Command is `?mess` (self) or `?mess @User` or `?mess <hostel> -<day>`")
+    
+    if message.content.lower().startswith('?yt'):
+        if message.author.voice == None:
+            await message.reply("Please connect to a voice channel")
+            return
+        try:
+            token = utils.yt(str(message.author.voice.channel.id), os.getenv('BOT_TOKEN'))
+            await message.reply(token)
+        except BaseException as err:
+            await message.reply("`"+str(err)+"`")
 
     if message.content.lower().startswith("?edit"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
