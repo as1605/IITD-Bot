@@ -315,4 +315,15 @@ def mergePYLGroups():
         out[s[0]] = int(s[1])
     json.dump(out, open('groups.json', 'w'))
 
+def major_tt(kerberos):
+    courses = get_student_courses(kerberos)
+    url = "https://aditm7.github.io/Majors_api/majors.json"
+    headers = {'user-agent': 'iitd-bot/1.0.0'}
+    majors_info = requests.get(url, headers=headers).json()
+    tt = {}
+    for c in courses:
+        c=c[5:11]
+        tt[c]=majors_info[c]
+    return tt
+
 reload()
