@@ -25,9 +25,10 @@ async def help(message):
 - `?courses` (self) or `?courses <kerberos>` or `?courses @User` to list courses
 - `?slot <course>` to get slot for a course
 - `?info <course>` to get info for a course (name, credits, pre reqs, overlaps, description)
-- `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable (excluding labs for now)
+- `?tt` (self) or `?tt <kerberos>` or `?tt @User` to get yours or someone else's timetable
 - `?mess` (self)(today) or `?mess @User` or `?mess <hostel> -<day>` to get mess menu for the hostel on that day
 - `?yt` to launch a YouTube Together session, where you can watch youtube videos or lectures together in a voice channel
+- `?major` (self) or `?major <kerberos>` or `?major @User` to get yours or someone else's major date sheet
 - Works for multiple inputs too! Try `?slot COL106 COL202`
 
 _Manager only_ -

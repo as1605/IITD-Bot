@@ -320,10 +320,15 @@ def major_tt(kerberos):
     url = "https://aditm7.github.io/Majors_api/majors.json"
     headers = {'user-agent': 'iitd-bot/1.0.0'}
     majors_info = requests.get(url, headers=headers).json()
-    tt = {}
+    tt = []
     for c in courses:
         c=c[5:11]
-        tt[c]=majors_info[c]
+        try:
+            m = majors_info[c]
+            tt.append([m["Day"], m["Time"].zfill(11), '/'.join(m["LHCs"]), c])
+        except:
+            tt.append([0, "?", "?", c])
+    tt.sort()
     return tt
 
 reload()

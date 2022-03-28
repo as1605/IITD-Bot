@@ -120,6 +120,28 @@ async def on_message(message):
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
+    if message.content.lower().startswith("?major"):
+        command = message.content.lower().split()
+        try:
+            kerberos = []
+            users = json.load(open("discord_ids.json"))
+            for id in message.raw_mentions:
+                kerberos.append(users[str(id)]["kerberos"])
+            for k in command:
+                if k[0].isalnum():
+                    kerberos.append(k)
+            if len(kerberos) == 0:
+                kerberos.append(users[str(message.author.id)]["kerberos"])
+            for k in kerberos:
+                tt = utils.major_tt(k)
+                out = k+"\n```\n"
+                for t in tt:
+                    out += f"{str(t[0]).zfill(2)} April - {t[3]} : {t[1]} ({t[2]})\n"
+                out += "\n```"
+                await message.reply(out) 
+        except:
+            await message.reply("Command is `?major` (self) or `?major <kerberos>` or `?major @User`")
+
     if message.content.lower().startswith("?mess"):
         if message.channel.name != "bot-commands":
             await message.reply("Please use `#bot-commands` channel")
