@@ -4,6 +4,7 @@ import discord
 import json
 import os
 from dotenv import load_dotenv
+import datetime
 
 
 intents = discord.Intents.default()
@@ -26,7 +27,7 @@ async def checkspam(message):
             try:
                 print(f"!ALERT!{message.guild}!{message.channel}!{message.author}!")
                 with open("spam.txt", "a") as messages:
-                    messages.write(str(m))
+                    messages.write(str(m)+'\n')
                 # await m.reply("`[REDACTED]`")
                 await m.delete()
             except:
@@ -187,8 +188,9 @@ async def on_message(message):
     
     if message.content.lower().startswith("?update"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
-            await chat.update(message, open('log.txt', 'w'))
-            await message.reply(file= discord.File('log.txt'))
+            fname = 'log' + datetime.datetime.now().isoformat() + '.txt'
+            await chat.update(message, open(fname, 'w'))
+            await message.reply(file= discord.File(fname))
         else:
             await message.reply("Only server managers can use this command")
 

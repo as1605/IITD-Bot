@@ -6,13 +6,14 @@ import email
 import imaplib
 import os
 from dotenv import load_dotenv
-
+import datetime
 
 course_lists = {}
 kerberos_lookup = {}
 course_slots = {}
 # mess = {}
 hostels = []
+groups = {}
 branches = []
 courses = []
 courseinfo = {}
@@ -36,6 +37,10 @@ def reload():
     global course_slots
     course_slots = {}
     course_slots = json.load(open("course_slots.json"))
+
+    global groups
+    groups = {}
+    groups = json.load(open("groups.json"))
 
     global kerberos_lookup
     kerberos_lookup = {}
@@ -189,11 +194,24 @@ def createTimeTable(kerberos):
         # if kerberos[4] != '1':
         course = course[5:]
         try : 
-            slot = course_slots[course]
-            for i in range(5): 
-                if slot in days[i]:
-                    timetable[i].append((slot,course,days[i][slot]))
-                timetable[i].sort()
+            if kerberos in groups:
+                slot1 = "2102-"+course[:6]+"-G"+str(groups[kerberos])
+                slot2 = "2102-"+course[:6]+"-T"+str(groups[kerberos])
+                slot3 = "2102-"+course[:6]+"-G"+str(groups[kerberos])+"W"+str(datetime.datetime.now().isocalendar()[1]-11)
+                for i in range(5): 
+                    if slot1 in days[i]:
+                        timetable[i].append((slot1[5:],days[i][slot1]))
+                    if slot2 in days[i]:
+                        timetable[i].append((slot2[5:],days[i][slot2]))
+                    if slot3 in days[i]:
+                        timetable[i].append((slot3[5:],days[i][slot3]))
+                    timetable[i].sort()
+            if course in course_slots:
+                slot = course_slots[course]
+                for i in range(5): 
+                    if slot in days[i]:
+                        timetable[i].append((course,days[i][slot]))
+                    timetable[i].sort()
         except:
             print(course+" Not found")
     week = ["Monday","Tuesday","Wednesday","Thursday","Friday"]
@@ -201,7 +219,7 @@ def createTimeTable(kerberos):
     for i in range(5):
         tt+=week[i]+'\n'
         for tup in timetable[i]:
-            tt+=tup[2] + ": " + tup[1] +'\n'
+            tt+=tup[0] + ": " + tup[1] +'\n'
         tt+='\n'
     return tt
 
@@ -277,5 +295,24 @@ def yt(vc, token):
         raise Exception(invite.text)
     return 'https://discord.com/invite/'+invite.json()['code']
 
+def generateGroups():
+    file = json.load(open('course_lists.json'))
+    groups = {}
+    for course in file:
+        if course[:7] == "MTL100T":
+            group = int(course[7:])
+            print(group)
+            for kerberos in file[course]:
+                groups[kerberos] = group
+    json.dump(groups, open('mtl_groups.json', 'w+'))
+
+def mergePYLGroups():
+    out = {}
+    file = open('batchB.csv')
+    sheet = csv.reader(file)
+    out = json.load(open('mtl_groups.json'))
+    for s in sheet:
+        out[s[0]] = int(s[1])
+    json.dump(out, open('groups.json', 'w'))
 
 reload()
