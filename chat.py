@@ -247,6 +247,6 @@ async def mess(message, command):
             today = menu[d]
             embed = discord.Embed(title=f'{d}\'s Mess Menu for {h}', color=discord.Color.blue())
             for meal in today:
-                embed.add_field(name=f"**{meal['name']}** ({meal['time']})", value=f"{meal['menu']}")
+                embed.add_field(name=f"**{meal['name']}** ({meal['time']})", value=f"{meal['menu']}", inline=False)
             await message.reply(embed=embed)
 
