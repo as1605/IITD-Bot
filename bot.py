@@ -102,7 +102,8 @@ async def on_message(message):
 
     if message.content.lower().startswith("?tt"):
         if message.channel.name != "bot-commands":
-            await message.reply("Please use `#bot-commands` channel")
+            channel = discord.utils.get(message.guild.channels, name='bot-commands')
+            await message.reply(f"Please use {channel.mention} channel")
             return
         command = message.content.lower().split()
         try:
@@ -144,7 +145,8 @@ async def on_message(message):
 
     if message.content.lower().startswith("?mess"):
         if message.channel.name != "bot-commands":
-            await message.reply("Please use `#bot-commands` channel")
+            channel = discord.utils.get(message.guild.channels, name='bot-commands')
+            await message.reply(f"Please use {channel.mention} channel")
             return
         command = message.content.title().split()
         try:
