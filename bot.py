@@ -27,7 +27,7 @@ async def checkspam(message):
             try:
                 print(f"!ALERT!{message.guild}!{message.channel}!{message.author}!")
                 with open("spam.txt", "a") as messages:
-                    messages.write(str(m)+'\n')
+                    messages.write(f"{m}\n")
                 # await m.reply("`[REDACTED]`")
                 await m.delete()
             except:
@@ -75,30 +75,39 @@ async def on_message(message):
             if len(kerberos) == 0:
                 kerberos.append(users[str(message.author.id)]["kerberos"])
             for k in kerberos:
-                courses = ' '
-                for c in utils.get_student_courses(k):
-                    courses += c + ' '
-                await message.reply(f"{k} `{courses}`")
+                embed = discord.Embed(title="Courses", color=discord.Color.red())
+                embed.add_field(name=k, value="\t".join(f"`{c}`" for c in utils.get_student_courses(k)))
+                await message.reply(embed=embed)
         except:
             await message.reply("Command is `?courses` (self) or `?courses <kerberos>` or `?courses @User`")
 
     if message.content.lower().startswith("?slot"):
         command = message.content.upper().split()
         try:
+            embed = discord.Embed(title="Slot", color=discord.Color.green())
             for course in command:
-                if course.isalnum():
-                    await message.reply(f"{course} `{utils.course_slots[course]}`")
+                if course in utils.course_slots:
+                    embed.add_field(name=course, value=f"`{utils.course_slots[course]}`")
+            await message.reply(embed=embed)
         except:
             await message.reply("Command is `?slot <course>`")
 
     if message.content.lower().startswith("?info"):
-        command = message.content.lower().split()
+        command = message.content.upper().split()
         try:
             for course in command:
-                if course.isalnum():
-                    await message.reply(utils.course_info(course))
+                if course in utils.courseinfo:
+                    info = utils.course_info(course)
+                    embed = discord.Embed(title = f"{info['code']} - {info['name']}", color=discord.Color.gold())
+                    embed.add_field(name='Credits', value = f"`{info['credits']}`")
+                    embed.add_field(name='Credit Structure', value = f"`{info['credit-structure']}`")
+                    embed.add_field(name='Pre-requisites', value = f"`{info['pre-requisites']}`")
+                    embed.add_field(name='Dependencies', value = '\t'.join(f"`{c}`" for c in info['dependencies']))
+                    embed.add_field(name='Overlap', value = f"`{info['overlap']}`")
+                    embed.add_field(name='Description', value = info['description'], inline=False)
+                    await message.reply(embed=embed)
         except:
-            await message.reply("Command is `?info <course>+`")
+            await message.reply("Command is `?info <course>`")
 
     if message.content.lower().startswith("?tt"):
         if message.channel.name != "bot-commands":
@@ -117,7 +126,10 @@ async def on_message(message):
             if len(kerberos) == 0:
                 kerberos.append(users[str(message.author.id)]["kerberos"])
             for k in kerberos:
-                await message.reply(f"{k}{chr(10)}```{chr(10)}{utils.createTimeTable(k)}{chr(10)}```") 
+                embed = discord.Embed(title=f"Timetable for {k}", color=discord.Color.red())
+                for day in utils.createTimeTable(k):
+                    embed.add_field(name=day[0], value=day[1], inline=False)
+            await message.reply(embed=embed)
         except:
             await message.reply("Command is `?tt` (self) or `?tt <kerberos>` or `?tt @User`")
 
@@ -135,11 +147,11 @@ async def on_message(message):
                 kerberos.append(users[str(message.author.id)]["kerberos"])
             for k in kerberos:
                 tt = utils.major_tt(k)
-                out = k+"\n```\n"
+                embed = discord.Embed(title=f"Majors for {k}", color=discord.Color.green())
                 for t in tt:
-                    out += f"{str(t[0]).zfill(2)} April - {t[3]} : {t[1]} ({t[2]})\n"
-                out += "\n```"
-                await message.reply(out) 
+                    s = "\n".join(f"`{e[2]}` : **{e[0]}** ({e[1]})" for e in tt[t])
+                    embed.add_field(name=f"{str(t).zfill(2)} April", value=s, inline=False)
+                await message.reply(embed=embed) 
         except:
             await message.reply("Command is `?major` (self) or `?major <kerberos>` or `?major @User`")
 
@@ -162,7 +174,7 @@ async def on_message(message):
             token = utils.yt(str(message.author.voice.channel.id), os.getenv('BOT_TOKEN'))
             await message.reply(token)
         except BaseException as err:
-            await message.reply("`"+str(err)+"`")
+            await message.reply(f"`{err}`")
 
     if message.content.lower().startswith("?edit"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
@@ -212,7 +224,7 @@ async def on_message(message):
     
     if message.content.lower().startswith("?update"):
         if discord.utils.get(message.guild.roles, name = "Manager") in message.author.roles:
-            fname = 'log' + datetime.datetime.now().isoformat() + '.txt'
+            fname = f"logs/log-{datetime.datetime.now().isoformat()}.txt"
             await chat.update(message, open(fname, 'w'))
             await message.reply(file= discord.File(fname))
         else:

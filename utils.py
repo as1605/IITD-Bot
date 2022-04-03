@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 import datetime
 
+
 course_lists = {}
 kerberos_lookup = {}
 course_slots = {}
@@ -123,7 +124,6 @@ def get_course_lists():
     with open("course_lists.json", "w") as outfile:
         json.dump(courseLists, outfile)
 
-
 def get_course_slots():
     course_slots = {}
     with open('Courses_Offered.csv', newline='') as csvfile:
@@ -136,7 +136,6 @@ def get_course_slots():
     with open("course_slots.json", "w") as outfile:
         json.dump(course_slots, outfile)
 
-
 def get_student_courses(kerberos):
     courses = []
     for c in course_lists:
@@ -145,7 +144,6 @@ def get_student_courses(kerberos):
         if kerberos in course_lists[c]:
             courses.append(c)
     return courses
-
 
 def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
     try:
@@ -187,7 +185,6 @@ def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
                 new_mails[mail_subject] = mail_content
     return new_mails
 
-#PROGRAM TO CREATE COURSES TIMETABLE 
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
@@ -215,14 +212,14 @@ def createTimeTable(kerberos):
         except:
             print(course+" Not found")
     week = ["Monday","Tuesday","Wednesday","Thursday","Friday"]
-    tt = ""
+    tt = []
     for i in range(5):
-        tt+=week[i]+'\n'
+        s = "```"
         for tup in timetable[i]:
-            tt+=tup[0] + ": " + tup[1] +'\n'
-        tt+='\n'
+            s+=tup[0] + ": " + tup[1] +'\n'
+        s+="```"
+        tt.append((week[i], s))
     return tt
-
 
 def mess_menu(hostel):
     url = 'https://jasrajsb.github.io/iitd-api/v1/mess-menu/' + hostel.lower() + '.json'
@@ -265,18 +262,8 @@ def course_info(code):
     for c in courseinfo:
         if code in str(courseinfo[c]['pre-requisites']):
             dependencies.append(c)
-    if len(dependencies) > 0:
-        dep = ", ".join(dependencies)
-    else:
-        dep = None
-    return f"""**{course['code']} - {course['name']}**
-Credits: `{course['credits']}` `({course['credit-structure']})`
-Pre-requisites: `{course['pre-requisites']}`
-Dependencies: `{dep}`
-Overlap: `{course['overlap']}`
-Description: ```
-{course['description']}
-```"""
+    course['dependencies'] = dependencies
+    return course
 
 def yt(vc, token):
     # https://discord.com/developers/docs/resources/channel#create-channel-invite
@@ -320,15 +307,21 @@ def major_tt(kerberos):
     url = "https://aditm7.github.io/Majors_api/majors.json"
     headers = {'user-agent': 'iitd-bot/1.0.0'}
     majors_info = requests.get(url, headers=headers).json()
-    tt = []
+    tt = {}
     for c in courses:
         c=c[5:11]
         try:
             m = majors_info[c]
-            tt.append([m["Day"], m["Time"].zfill(11), '/'.join(m["LHCs"]), c])
+            if m["Day"] not in tt:
+                tt[m["Day"]] = []
+            tt[m["Day"]].append([m["Time"].zfill(11), '/'.join(m["LHCs"]), c])
+            tt[m["Day"]].sort()
         except:
-            tt.append([0, "?", "?", c])
-    tt.sort()
-    return tt
+            if 0 not in tt:
+                tt[0] = []
+            tt[0].append(["?", "?", c])
+            tt[0].sort()
+    return dict(sorted(tt.items()))
+
 
 reload()
