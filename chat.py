@@ -237,12 +237,7 @@ async def mess(message, command):
         days.append(calendar.day_abbr[datetime.datetime.now().weekday()])
     
     for h in hostel:
-        menu = {}
-        try:
-            menu = utils.mess_sheet(h)
-        except:
-            await message.reply("Mess API is down, please try again later")
-            return
+        menu = utils.mess_sheet(h)
         for d in days:
             today = menu[d]
             embed = discord.Embed(title=f'{d}\'s Mess Menu for {h}', color=discord.Color.blue())

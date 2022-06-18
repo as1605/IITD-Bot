@@ -262,6 +262,7 @@ def course_info(code):
     for c in courseinfo:
         if code in str(courseinfo[c]['pre-requisites']):
             dependencies.append(c)
+    if dependencies == []: dependencies = [None]
     course['dependencies'] = dependencies
     return course
 

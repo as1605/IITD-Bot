@@ -28,7 +28,7 @@ async def checkspam(message):
                 print(f"!ALERT!{message.guild}!{message.channel}!{message.author}!")
                 with open("spam.txt", "a") as messages:
                     messages.write(f"{m}\n")
-                # await m.reply("`[REDACTED]`")
+                await m.reply("`[REDACTED]`")
                 await m.delete()
             except:
                 print("[ERROR] couldn't delete")
@@ -104,7 +104,7 @@ async def on_message(message):
                     embed.add_field(name='Pre-requisites', value = f"`{info['pre-requisites']}`")
                     embed.add_field(name='Dependencies', value = '\t'.join(f"`{c}`" for c in info['dependencies']))
                     embed.add_field(name='Overlap', value = f"`{info['overlap']}`")
-                    embed.add_field(name='Description', value = info['description'], inline=False)
+                    embed.add_field(name='Description', value = info['description'][:1024], inline=False)
                     await message.reply(embed=embed)
         except:
             await message.reply("Command is `?info <course>`")
