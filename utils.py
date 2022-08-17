@@ -12,7 +12,6 @@ import datetime
 course_lists = {}
 kerberos_lookup = {}
 course_slots = {}
-# mess = {}
 hostels = []
 groups = {}
 branches = []
@@ -26,10 +25,6 @@ def reload():
     global days
     days = []
     days = json.load(open("day_slots.json"))
-
-    # global mess
-    # mess = {}
-    # mess = json.load(open("mess.json"))
 
     global course_lists
     course_lists = {}
@@ -75,7 +70,7 @@ def reload():
     courseinfo = {}
     with open("raw_course_data_2.xml") as cdata:
         s = "".join(cdata.readlines())
-        tree = BeautifulSoup(s, 'lxml')
+        tree = BeautifulSoup(s, 'html.parser')
 
     # handling missing courses as well: 
     mscidx = 0
@@ -130,7 +125,6 @@ def get_course_slots():
         sheet = csv.reader(csvfile, delimiter=',')
         for s in sheet:
             course = s[1].split('-')[-1]
-            #if course in course_lists:
             slot = s[3]
             course_slots[course] = slot
     with open("course_slots.json", "w") as outfile:
@@ -139,7 +133,7 @@ def get_course_slots():
 def get_student_courses(kerberos):
     courses = []
     for c in course_lists:
-        if c[:4] != "2102":
+        if c[:4] != "2201":
             continue
         if kerberos in course_lists[c]:
             courses.append(c)
@@ -188,21 +182,8 @@ def fetch_circulars(to = 'allstudents@circular.iitd.ac.in'):
 def createTimeTable(kerberos): 
     timetable = [[] for i in range(5)]
     for course in get_student_courses(kerberos):
-        # if kerberos[4] != '1':
         course = course[5:]
         try : 
-            if kerberos in groups:
-                slot1 = "2102-"+course[:6]+"-G"+str(groups[kerberos])
-                slot2 = "2102-"+course[:6]+"-T"+str(groups[kerberos])
-                slot3 = "2102-"+course[:6]+"-G"+str(groups[kerberos])+"W"+str(datetime.datetime.now().isocalendar()[1]-11)
-                for i in range(5): 
-                    if slot1 in days[i]:
-                        timetable[i].append((slot1[5:],days[i][slot1]))
-                    if slot2 in days[i]:
-                        timetable[i].append((slot2[5:],days[i][slot2]))
-                    if slot3 in days[i]:
-                        timetable[i].append((slot3[5:],days[i][slot3]))
-                    timetable[i].sort()
             if course in course_slots:
                 slot = course_slots[course]
                 for i in range(5): 
@@ -283,25 +264,6 @@ def yt(vc, token):
         raise Exception(invite.text)
     return 'https://discord.com/invite/'+invite.json()['code']
 
-def generateGroups():
-    file = json.load(open('course_lists.json'))
-    groups = {}
-    for course in file:
-        if course[:7] == "MTL100T":
-            group = int(course[7:])
-            print(group)
-            for kerberos in file[course]:
-                groups[kerberos] = group
-    json.dump(groups, open('mtl_groups.json', 'w+'))
-
-def mergePYLGroups():
-    out = {}
-    file = open('batchB.csv')
-    sheet = csv.reader(file)
-    out = json.load(open('mtl_groups.json'))
-    for s in sheet:
-        out[s[0]] = int(s[1])
-    json.dump(out, open('groups.json', 'w'))
 
 def major_tt(kerberos):
     courses = get_student_courses(kerberos)

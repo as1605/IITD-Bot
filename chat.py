@@ -91,7 +91,7 @@ async def set(message, id, kerberos):
             print("No role exists for `"+branch+"`. Please request admin to create")
 
         course = utils.get_student_courses(kerberos)
-        course = [a.replace("2102-","") for a in course]
+        course = [a.replace("2201-","") for a in course]
         for c in utils.courses:
             if discord.utils.get(message.guild.roles, name = c) in user.roles:
                 await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
@@ -181,14 +181,14 @@ async def update(message, log):
                         log.write("WARNING: ROLE not found `"+branch+"`"+'\n')
 
             course = utils.get_student_courses(kerberos)
-            course2 = [a.replace("2102-","") for a in course]
+            course2 = [a.replace("2201-","") for a in course]
             for c in utils.courses:
                 if c not in course2 and discord.utils.get(message.guild.roles, name = c) in user.roles:
                     await user.remove_roles(discord.utils.get(message.guild.roles, name = c))
                     log.write("ACTION: Removed role `"+c+"` for `"+user.name+"`\n")
             for c in course:
-                if c.startswith("2102-") or c=="NEN100" or c=="Onboarded":
-                    if c.startswith("2102-"):
+                if c.startswith("2201-") or c=="NEN100" or c=="Onboarded":
+                    if c.startswith("2201-"):
                         c = c[5:]
                     if discord.utils.get(message.guild.roles, name = c) not in user.roles:
                         try:
